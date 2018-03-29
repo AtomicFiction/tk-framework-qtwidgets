@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -122,7 +122,7 @@ class VersionDetailsWidget(QtGui.QWidget):
         self._dock_widget = None
         self._pre_submit_callback = None
 
-        self.ui = Ui_VersionDetailsWidget() 
+        self.ui = Ui_VersionDetailsWidget()
         self.ui.setupUi(self)
 
         # Show the "empty" image that tells the user that no Version
@@ -701,7 +701,7 @@ class VersionDetailsWidget(QtGui.QWidget):
         """
         entity_fields = dict(
             Note=[self.NOTE_METADATA_FIELD],
-            Reply=[self.NOTE_METADATA_FIELD], 
+            Reply=[self.NOTE_METADATA_FIELD],
         )
 
         self._note_metadata_uids.append(
@@ -752,7 +752,7 @@ class VersionDetailsWidget(QtGui.QWidget):
     def __on_worker_failure(self, uid, msg):
         """
         Asynchronous callback - the worker thread errored.
-        
+
         :param int uid: Unique id for request that failed.
         :param str msg: The error message.
         """
@@ -800,7 +800,7 @@ class VersionDetailsWidget(QtGui.QWidget):
         Adds or removes a field when it checked or unchecked
         via the EntityFieldMenu.
 
-        :param action: The QMenuAction that was triggered. 
+        :param action: The QMenuAction that was triggered.
         """
         if action:
             # The MenuAction's data will have a "field" key that was
@@ -863,10 +863,10 @@ class VersionDetailsWidget(QtGui.QWidget):
             )
 
             self.version_proxy_model.sort(
-                0, 
+                0,
                 (
-                    QtCore.Qt.AscendingOrder if 
-                    self._sort_versions_ascending else 
+                    QtCore.Qt.AscendingOrder if
+                    self._sort_versions_ascending else
                     QtCore.Qt.DescendingOrder
                 ),
             )
@@ -928,7 +928,7 @@ class VersionDetailsWidget(QtGui.QWidget):
         Adds or removes a field when it checked or unchecked
         via the EntityFieldMenu.
 
-        :param action:  The QMenuAction that was triggered. 
+        :param action:  The QMenuAction that was triggered.
         """
         if action:
             # The MenuAction's data will have a "field" key that was
@@ -1209,7 +1209,7 @@ class VersionDetailsWidget(QtGui.QWidget):
         self.ui.current_version_card.thumbnail.setPixmap(
             QtGui.QPixmap(data["path"])
         )
-        
+
     ##########################################################################
     # docking
 
@@ -1249,10 +1249,10 @@ class VersionDetailsWidget(QtGui.QWidget):
         """
         self._sort_versions_ascending = not self._sort_versions_ascending
         self.version_proxy_model.sort(
-            0, 
+            0,
             (
-                QtCore.Qt.AscendingOrder if 
-                self._sort_versions_ascending else 
+                QtCore.Qt.AscendingOrder if
+                self._sort_versions_ascending else
                 QtCore.Qt.DescendingOrder
             ),
         )
@@ -1280,10 +1280,10 @@ class VersionDetailsWidget(QtGui.QWidget):
             self.version_proxy_model.primary_sort_field = field
 
         self.version_proxy_model.sort(
-            0, 
+            0,
             (
-                QtCore.Qt.AscendingOrder if 
-                self._sort_versions_ascending else 
+                QtCore.Qt.AscendingOrder if
+                self._sort_versions_ascending else
                 QtCore.Qt.DescendingOrder
             ),
         )
