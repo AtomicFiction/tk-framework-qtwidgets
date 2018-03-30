@@ -6,6 +6,7 @@ import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 
 from .ui.version_search_widget import Ui_VersionSearchWidget
+from .version_search_proxy import VersionTreeProxyModel
 
 from ..views.grouped_list_view.grouped_list_view import GroupedListView
 from ..views.grouped_list_view.group_widget import GroupWidget
@@ -40,6 +41,7 @@ class VersionSearchWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         self._init_ui()
+        self._connect_signals()
 
         model_filters = [['project', 'is', SHOW],
                          ['entity', 'is', SHOT]]
@@ -61,11 +63,14 @@ class VersionSearchWidget(QtGui.QWidget):
         self._search_layout.addWidget(self._search_widget)
 
         self._version_view = QtGui.QTreeView(self)
+        self._version_proxy = VersionTreeProxyModel(self._version_view)
         self._version_model = shotgun_model.ShotgunModel(self._version_view,
                                                          download_thumbs=False,
                                                          bg_load_thumbs=False)
 
-        self._version_view.setModel(self._version_model)
+        self._version_proxy.setFilterWildcard('*')
+        self._version_proxy.setSourceModel(self._version_model)
+        self._version_view.setModel(self._version_proxy)
         self._version_layout.addWidget(self._version_view)
 
         self._main_layout.addLayout(self._search_layout)
@@ -77,6 +82,14 @@ class VersionSearchWidget(QtGui.QWidget):
         #self.setObjectName('version_search_widget')
         #self.view.setObjectName('version_view')
         #self._load_stylesheet()
+
+    def _connect_signals(self):
+        self._search_widget.search_edited.connect(self._search_edited)
+
+    def _search_edited(self, *args, **kwargs):
+        print 'search edited signal!'
+        print 'args:', args
+        print 'kwargs:', kwargs
 
     def _load_stylesheet(self):
         """
