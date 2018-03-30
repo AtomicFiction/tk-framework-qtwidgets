@@ -7,33 +7,16 @@ from sgtk.platform.qt import QtCore, QtGui
 
 from .ui.version_search_widget import Ui_VersionSearchWidget
 
-from ..views.grouped_list_view.group_widget import GroupWidget
 from ..views.grouped_list_view.grouped_list_view import GroupedListView
+from ..views.grouped_list_view.group_widget import GroupWidget
+
+from ..search_widget.search_widget import SearchWidget
 
 shotgun_model = sgtk.platform.import_framework(
     "tk-framework-shotgunutils",
     "shotgun_model",
 )
 
-shotgun_globals = sgtk.platform.import_framework(
-    "tk-framework-shotgunutils",
-    "shotgun_globals",
-)
-
-task_manager = sgtk.platform.import_framework(
-    "tk-framework-shotgunutils",
-    "task_manager",
-)
-
-shotgun_data = sgtk.platform.import_framework(
-    "tk-framework-shotgunutils",
-    "shotgun_data",
-)
-
-settings = sgtk.platform.import_framework(
-    "tk-framework-shotgunutils",
-    "settings",
-)
 
 models = sgtk.platform.current_bundle().import_module("models")
 
@@ -56,67 +39,60 @@ class VersionSearchWidget(QtGui.QWidget):
     def __init__(self, parent=None, engine=None):
         QtGui.QWidget.__init__(self, parent)
 
-        self.ui = Ui_VersionSearchWidget()
-        self.ui.setupUi(self)
-
-        self.view = QtGui.QTreeView(self)
-        self.version_model = shotgun_model.ShotgunModel(self.view,
-                                                        download_thumbs=False,
-                                                        bg_load_thumbs=False)
-
-        self.view.setModel(self.version_model)
-
-        self._main_layout = QtGui.QVBoxLayout(parent)
-        self._main_layout.addWidget(self.view)
-        self.setLayout(self._main_layout)
-
-        self.version_model.data_refreshed.connect(self._foo)
+        self._init_ui()
 
         model_filters = [['project', 'is', SHOW],
                          ['entity', 'is', SHOT]]
 
-        self.version_model._load_data('Version',
-                                      model_filters,
-                                      [['sg_step'], ['code']],
-                                      ['type'])
+        self._version_model._load_data('Version',
+                                       model_filters,
+                                       ['sg_step', 'code'],
+                                       ['type'])
 
-        self.version_model._refresh_data()
+        self._version_model._refresh_data()
 
+    def _init_ui(self):
 
-    def _foo(self):
-        print 'foo'
-'''
-        self.ui = Ui_VersionSearchWidget()
-        self.ui.setupUi(self)
+        self._main_layout = QtGui.QVBoxLayout(self)
+        self._search_layout = QtGui.QHBoxLayout(self)
+        self._version_layout = QtGui.QHBoxLayout(self)
 
-        self.group_widget = GroupWidget()
+        self._search_widget = SearchWidget(self)
+        self._search_layout.addWidget(self._search_widget)
 
+        self._version_view = QtGui.QTreeView(self)
+        self._version_model = shotgun_model.ShotgunModel(self._version_view,
+                                                         download_thumbs=False,
+                                                         bg_load_thumbs=False)
 
-        self.version_model = shotgun_model.ShotgunModel(self,
-                                                        download_thumbs=False,
-                                                        bg_load_thumbs=False)
+        self._version_view.setModel(self._version_model)
+        self._version_layout.addWidget(self._version_view)
 
-        model_filters = [['project', 'is', SHOW],
-                         ['entity', 'is', SHOT]]
+        self._main_layout.addLayout(self._search_layout)
+        self._main_layout.addLayout(self._version_layout)
 
-
-        self.version_model._load_data('Version',
-                                      model_filters,
-                                      ['sg_step', 'code'],
-                                      ['code'])
-
-        self.view = QtGui.QTreeView(self)
-
-        self.proxy_model = models.HierarchicalFilteringProxyModel(parent=self.view)
-        self.proxy_model.setSourceModel(self.version_model)
-
-        self.view = GroupedListView(self)
-        #self.view.setModel(self.proxy_model)
-
-        self._main_layout = QtGui.QVBoxLayout(parent)
-        self._main_layout.addWidget(self.view)
         self.setLayout(self._main_layout)
-'''
 
+        # TODO: Make a not shitty style sheet
+        #self.setObjectName('version_search_widget')
+        #self.view.setObjectName('version_view')
+        #self._load_stylesheet()
 
+    def _load_stylesheet(self):
+        """
+        Loads in the widget's master stylesheet from disk.
+        """
+        qss_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "style.qss"
+        )
+        try:
+            f = open(qss_file, "rt")
+            qss_data = sgtk.platform.current_bundle().engine._resolve_sg_stylesheet_tokens(
+                f.read(),
+            )
+            print qss_data
+            self.setStyleSheet(qss_data)
+        finally:
+            f.close()
 
