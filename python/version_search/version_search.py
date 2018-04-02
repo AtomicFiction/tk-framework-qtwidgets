@@ -5,11 +5,7 @@ import sgtk
 
 from sgtk.platform.qt import QtCore, QtGui
 
-from .ui.version_search_widget import Ui_VersionSearchWidget
 from .version_search_proxy import VersionTreeProxyModel
-
-from ..views.grouped_list_view.grouped_list_view import GroupedListView
-from ..views.grouped_list_view.group_widget import GroupWidget
 
 from ..search_widget.search_widget import SearchWidget
 
@@ -35,10 +31,10 @@ SHOT = sg_conn.find_one('Shot', [['code', 'is', 'G_01'],
 print SHOW
 print SHOT
 
-class VersionSearchWidget(QtGui.QWidget):
+class VersionSearchMenu(QtGui.QMenu):
 
     def __init__(self, parent=None, engine=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtGui.QMenu.__init__(self, parent)
 
         self._init_ui()
         self._connect_signals()
@@ -78,34 +74,21 @@ class VersionSearchWidget(QtGui.QWidget):
 
         self.setLayout(self._main_layout)
 
-        # TODO: Make a not shitty style sheet
-        #self.setObjectName('version_search_widget')
-        #self.view.setObjectName('version_view')
-        #self._load_stylesheet()
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(500)
+
+        # TODO: How to automatically make all the contents visible when
+        # the model reloads data?
 
     def _connect_signals(self):
-        self._search_widget.search_edited.connect(self._search_edited)
+        self._search_widget.search_edited.connect(self._set_proxy_regex)
+        self._search_widget.search_changed.connect(self._set_proxy_regex)
 
-    def _search_edited(self, *args, **kwargs):
-        print 'search edited signal!'
-        print 'args:', args
-        print 'kwargs:', kwargs
+    def _set_proxy_regex(self, search_args):
+        self._version_proxy.invalidateFilter()
+        regex = '*{args}*'.format(args=search_args)
+        self._version_proxy.setFilterWildcard(regex)
+        self._version_proxy.invalidateFilter()
 
-    def _load_stylesheet(self):
-        """
-        Loads in the widget's master stylesheet from disk.
-        """
-        qss_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "style.qss"
-        )
-        try:
-            f = open(qss_file, "rt")
-            qss_data = sgtk.platform.current_bundle().engine._resolve_sg_stylesheet_tokens(
-                f.read(),
-            )
-            print qss_data
-            self.setStyleSheet(qss_data)
-        finally:
-            f.close()
-
+        print 'expanding!'
+        self._version_view.expandAll()

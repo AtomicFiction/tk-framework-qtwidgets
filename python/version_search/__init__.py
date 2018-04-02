@@ -1,2 +1,2 @@
 
-from .version_search import VersionSearchWidget
+from .version_search import VersionSearchMenu
