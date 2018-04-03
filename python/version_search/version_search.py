@@ -17,21 +17,16 @@ shotgun_model = sgtk.platform.import_framework(
 
 models = sgtk.platform.current_bundle().import_module("models")
 
-# temp imports/globals for testing
-import shotgun_api3.shotgun
-url = 'https://atomic-staging.shotgunstudio.com'
-sg_conn = shotgun_api3.shotgun.Shotgun(url,
-                                       login='admin',
-                                       password='@F$Taging')
-
-SHOW = sg_conn.find_one('Project', [['name', 'is', 'default']])
-SHOT = sg_conn.find_one('Shot', [['code', 'is', 'G_01'],
-                                 ['project', 'is', SHOW]])
-
-print SHOW
-print SHOT
-
 class VersionSearchMenu(QtGui.QMenu):
+
+    version_selected = QtCore.Signal(list)
+
+    FIELDS = ['sg_uploaded_movie_frame_rate',
+              'sg_first_frame',
+              'sg_movie_has_slate',
+              'entity']
+
+    FILTERS = ['sg_path_to_movie', 'is_not', None]
 
     def __init__(self, parent=None, engine=None):
         QtGui.QMenu.__init__(self, parent)
@@ -39,15 +34,9 @@ class VersionSearchMenu(QtGui.QMenu):
         self._init_ui()
         self._connect_signals()
 
-        model_filters = [['project', 'is', SHOW],
-                         ['entity', 'is', SHOT]]
-
-        self._version_model._load_data('Version',
-                                       model_filters,
-                                       ['sg_step', 'code'],
-                                       ['type'])
-
-        self._version_model._refresh_data()
+        # TODO: expose convenience methods to version_model._load_data
+        # and version_model._refresh_data; can call them
+        # manually
 
     def _init_ui(self):
 
@@ -60,12 +49,12 @@ class VersionSearchMenu(QtGui.QMenu):
 
         self._version_view = QtGui.QTreeView(self)
         self._version_proxy = VersionTreeProxyModel(self._version_view)
-        self._version_model = shotgun_model.ShotgunModel(self._version_view,
-                                                         download_thumbs=False,
-                                                         bg_load_thumbs=False)
+        self.version_model = shotgun_model.ShotgunModel(self._version_view,
+                                                        download_thumbs=False,
+                                                        bg_load_thumbs=False)
 
         self._version_proxy.setFilterWildcard('*')
-        self._version_proxy.setSourceModel(self._version_model)
+        self._version_proxy.setSourceModel(self.version_model)
         self._version_view.setModel(self._version_proxy)
         self._version_layout.addWidget(self._version_view)
 
@@ -80,9 +69,13 @@ class VersionSearchMenu(QtGui.QMenu):
         # TODO: How to automatically make all the contents visible when
         # the model reloads data?
 
+        # TODO: Set menu size based on model contents
+
     def _connect_signals(self):
         self._search_widget.search_edited.connect(self._set_proxy_regex)
         self._search_widget.search_changed.connect(self._set_proxy_regex)
+
+        self._version_view.doubleClicked.connect(self._version_selected)
 
     def _set_proxy_regex(self, search_args):
         self._version_proxy.invalidateFilter()
@@ -90,5 +83,12 @@ class VersionSearchMenu(QtGui.QMenu):
         self._version_proxy.setFilterWildcard(regex)
         self._version_proxy.invalidateFilter()
 
-        print 'expanding!'
-        self._version_view.expandAll()
+    def _version_selected(self, event):
+        item = self.version_model.itemFromIndex(self._version_proxy.mapToSource(event))
+        sg_data = item.get_sg_data()
+        print sg_data
+
+        self.version_selected.emit([sg_data])
+
+
+
